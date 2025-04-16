@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
+
 import logging
 
 db = SQLAlchemy()
@@ -20,6 +21,9 @@ def create_app():
 
     from .routes import main
     app.register_blueprint(main)
+
+    from .api import api
+    app.register_blueprint(api)
 
     with app.app_context():
         db.create_all()
