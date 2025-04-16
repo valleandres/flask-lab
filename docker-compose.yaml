@@ -2,7 +2,7 @@ services:
   web:
     build: .
     ports:
-      - "5001:5000"
+      - "80:5000"
     environment:
       - FLASK_APP=app.app
       - FLASK_ENV=development
