@@ -1,0 +1,9 @@
+# Python cache
+*.pyc
+__pycache__/
+
+# Flask + Python extras
+instance/
+.env
+*.log
+
