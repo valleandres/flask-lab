@@ -8,8 +8,19 @@ csrf.exempt(api)  # Exempt the entire API blueprint from CSRF protection
 
 @api.route('', methods=['GET'])
 def get_users():
-    users = User.query.all()
-    return jsonify([{'id': u.id, 'name': u.name} for u in users])
+    page = request.args.get('page', default=1, type=int)
+    limit = request.args.get('limit', default=2, type=int)
+
+    users_query = User.query.paginate(page=page, per_page=limit, error_out=False)
+    users = users_query.items
+
+    return jsonify({
+        'page': page,
+        'limit': limit,
+        'total': users_query.total,
+        'pages': users_query.pages,
+        'data': [{'id': u.id, 'name': u.name} for u in users]
+    })
 
 
 @api.route('/<int:user_id>', methods=['GET'])
