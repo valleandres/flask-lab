@@ -10,8 +10,32 @@ csrf.exempt(api)  # Exempt the entire API blueprint from CSRF protection
 def get_users():
     page = request.args.get('page', default=1, type=int)
     limit = request.args.get('limit', default=2, type=int)
+    name_filter = request.args.get('name')
+    sort_field = request.args.get('sort', default='id')
+    sort_order = request.args.get('order', default='asc')
 
-    users_query = User.query.paginate(page=page, per_page=limit, error_out=False)
+    query = User.query
+
+    # Apply filtering based on the name query parameter
+    if name_filter:
+        query = query.filter(User.name.ilike(f'%{name_filter}%'))
+
+    # Allow only certain fields to be sorted
+    allowed_sort_fields = {
+        'id': User.id,
+        'name': User.name,
+    }
+
+    # Validate the sort field
+    sort_column = allowed_sort_fields.get(sort_field, User.id)
+
+    if sort_order == 'desc':
+        query = query.order_by(sort_column.desc())
+    else:
+        query = query.order_by(sort_column.asc())
+
+    users_query = query.paginate(page=page, per_page=limit, error_out=False)
+
     users = users_query.items
 
     return jsonify({
