@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template_string, request, redirect
 from .forms import NameForm
 from .models import db, User
+from flask_login import login_required, current_user
 
 main = Blueprint('main', __name__)
 
@@ -21,3 +22,8 @@ def index():
         db.session.commit()
         return redirect('/')
     return render_template_string(TEMPLATE, form=form)
+
+@main.route('/dashboard')
+@login_required
+def dashboard():
+    return f"Welcome, {current_user.username}!"
