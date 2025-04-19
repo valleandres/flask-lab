@@ -4,12 +4,12 @@ services:
     ports:
       - "80:5000"
     environment:
-      - FLASK_APP=app.app
+      - FLASK_APP=app:create_app
       - FLASK_ENV=development
     volumes:
       - .:/app
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
 
   test:
     build: .
