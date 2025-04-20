@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify, abort
+from flask import Blueprint, request, jsonify
+
 from .models import db, User
 from . import csrf
 
