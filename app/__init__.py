@@ -32,6 +32,9 @@ def create_app():
     from .api import api
     app.register_blueprint(api)
 
+    from app.auth.routes import auth_bp
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+
     from .models import Admin
 
     @login_manager.user_loader
