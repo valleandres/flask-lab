@@ -3,9 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf import CSRFProtect
 
+import logging
+
 db = SQLAlchemy()
 csrf = CSRFProtect()
 login_manager = LoginManager()
+
+logging.basicConfig(filename='flask.log', level=logging.DEBUG)
 
 def create_app():
     app = Flask(__name__)
