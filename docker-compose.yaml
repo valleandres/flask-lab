@@ -4,12 +4,14 @@ services:
     ports:
       - "80:5000"
     environment:
-      - FLASK_APP=app.app
+      - FLASK_APP=app:create_app
       - FLASK_ENV=development
+      - FLASK_DEBUG=1
     volumes:
       - .:/app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   test:
     build: .
@@ -30,6 +32,8 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD
 
 volumes:
   db_data:

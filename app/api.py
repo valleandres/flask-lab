@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify, abort
+from flask import Blueprint, request, jsonify
+
 from .models import db, User
-from .app import csrf  # Import the CSRF extension
+from . import csrf
 
 api = Blueprint('api', __name__, url_prefix='/api/users')
 csrf.exempt(api)  # Exempt the entire API blueprint from CSRF protection
