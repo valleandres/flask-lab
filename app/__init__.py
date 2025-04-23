@@ -4,12 +4,14 @@ from flask_login import LoginManager
 from flask_wtf import CSRFProtect
 
 import logging
+from logging.handlers import RotatingFileHandler
+import os
 
 db = SQLAlchemy()
 csrf = CSRFProtect()
 login_manager = LoginManager()
 
-logging.basicConfig(filename='flask.log', level=logging.DEBUG)
+# logging.basicConfig(filename='flask.log', level=logging.DEBUG)
 
 def create_app():
     app = Flask(__name__)
@@ -18,6 +20,18 @@ def create_app():
         SQLALCHEMY_DATABASE_URI='mysql+pymysql://user:password@db:3306/mydatabase',
         SQLALCHEMY_TRACK_MODIFICATIONS=False
     )
+
+    # Logging setup
+    if not os.path.exists("logs"):
+        os.mkdir("logs")
+    file_handler = RotatingFileHandler("logs/app.log", maxBytes=10240, backupCount=3)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.DEBUG)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.DEBUG)
+    app.logger.info("App startup")
 
     db.init_app(app)
     csrf.init_app(app)

@@ -9,6 +9,7 @@ services:
       - FLASK_DEBUG=1
     volumes:
       - .:/app
+      - ./logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
