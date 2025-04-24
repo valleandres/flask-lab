@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
 from app.auth.jwt_utils import generate_token, decode_token
+from app.extensions import csrf
 
 auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/login", methods=["POST"])
+@csrf.exempt
 def login():
     data = request.json
     if data["username"] == "admin" and data["password"] == "123":

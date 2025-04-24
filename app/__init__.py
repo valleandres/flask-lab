@@ -1,17 +1,17 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from flask_wtf import CSRFProtect
+from flask_migrate import Migrate
+from app.extensions import db, csrf, login_manager
+# from app import models
+
+# from app.models import User, Admin
 
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 
-db = SQLAlchemy()
-csrf = CSRFProtect()
-login_manager = LoginManager()
+logging.basicConfig(filename='flask.log', level=logging.DEBUG)
 
-# logging.basicConfig(filename='flask.log', level=logging.DEBUG)
+# asd
 
 def create_app():
     app = Flask(__name__)
@@ -37,6 +37,11 @@ def create_app():
     csrf.init_app(app)
     login_manager.init_app(app)
 
+    from app import models
+    from app.models import User, Admin, Dummy
+
+    migrate = Migrate(app, db)
+
     from .routes import main
     app.register_blueprint(main)
 
@@ -55,7 +60,7 @@ def create_app():
     def load_user(user_id):
         return Admin.query.get(int(user_id))
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     return app
