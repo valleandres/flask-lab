@@ -31,15 +31,39 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://flask.local/api/users",
+					"raw": "http://127.0.0.1/api/users?page=1&limit=3&name=andres&sort=id&order=desc",
 					"protocol": "http",
 					"host": [
-						"flask",
-						"local"
+						"127",
+						"0",
+						"0",
+						"1"
 					],
 					"path": [
 						"api",
 						"users"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "3"
+						},
+						{
+							"key": "name",
+							"value": "andres"
+						},
+						{
+							"key": "sort",
+							"value": "id"
+						},
+						{
+							"key": "order",
+							"value": "desc"
+						}
 					]
 				}
 			},
@@ -72,7 +96,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"name\": \"Andrés\"\n}",
+					"raw": "{\n  \"name\": \"Andrés 2\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -80,11 +104,13 @@
 					}
 				},
 				"url": {
-					"raw": "http://flask.local/api/users",
+					"raw": "http://127.0.0.1/api/users",
 					"protocol": "http",
 					"host": [
-						"flask",
-						"local"
+						"127",
+						"0",
+						"0",
+						"1"
 					],
 					"path": [
 						"api",
@@ -119,16 +145,18 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://flask.local/api/users/1",
+					"raw": "http://127.0.0.1/api/users/6",
 					"protocol": "http",
 					"host": [
-						"flask",
-						"local"
+						"127",
+						"0",
+						"0",
+						"1"
 					],
 					"path": [
 						"api",
 						"users",
-						"1"
+						"6"
 					]
 				}
 			},
@@ -168,11 +196,13 @@
 					}
 				},
 				"url": {
-					"raw": "http://flask.local/api/users/1",
+					"raw": "http://127.0.0.1/api/users/1",
 					"protocol": "http",
 					"host": [
-						"flask",
-						"local"
+						"127",
+						"0",
+						"0",
+						"1"
 					],
 					"path": [
 						"api",
@@ -212,16 +242,153 @@
 					}
 				},
 				"url": {
-					"raw": "http://flask.local/api/users/2",
+					"raw": "http://127.0.0.1/api/users/1",
 					"protocol": "http",
 					"host": [
-						"flask",
-						"local"
+						"127",
+						"0",
+						"0",
+						"1"
 					],
 					"path": [
 						"api",
 						"users",
-						"2"
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/auth/login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Returns a list of users\", () => {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json).to.be.an(\"array\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "127.0.0.1/auth/login",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"path": [
+						"auth",
+						"login"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "admin",
+							"disabled": true
+						},
+						{
+							"key": "password",
+							"value": "123",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/dashboard",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Returns a list of users\", () => {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json).to.be.an(\"array\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NDU0NzM1MzF9.unvRH_S94diqCxbmokKCY5K2WSbrWIV2l01a8LJuXpU",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "127.0.0.1/auth/protected",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"path": [
+						"auth",
+						"protected"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "admin",
+							"disabled": true
+						},
+						{
+							"key": "password",
+							"value": "123",
+							"disabled": true
+						}
 					]
 				}
 			},
