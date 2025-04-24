@@ -15,3 +15,9 @@ class Admin(UserMixin, db.Model):
     def __init__(self, username, password):
         self.username = username
         self.password = password
+
+from app.extensions import db
+
+class Dummy(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))

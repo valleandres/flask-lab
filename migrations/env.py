@@ -7,11 +7,12 @@ from alembic import context
 
 # my imports
 from app.extensions import db
-from app import models
-from app import create_app
+# from app import models
+# from app.models import Admin, User
+# from app import create_app
 
 # add app to context
-app = create_app()
+# app = create_app()
 # app.app_context().push()
 
 # this is the Alembic Config object, which provides
@@ -46,6 +47,10 @@ def get_engine_url():
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = db.metadata
+
+print("\n[DEBUG] Tables found in metadata:")
+for table in target_metadata.tables:
+    print(f"  - {table}")
 
 config.set_main_option('sqlalchemy.url', get_engine_url())
 target_db = current_app.extensions['migrate'].db

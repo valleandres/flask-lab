@@ -22,7 +22,7 @@ def create_app():
     login_manager.init_app(app)
 
     from app import models
-    from app.models import User, Admin
+    from app.models import User, Admin, Dummy
 
     migrate = Migrate(app, db)
 
@@ -44,7 +44,7 @@ def create_app():
     def load_user(user_id):
         return Admin.query.get(int(user_id))
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     return app
