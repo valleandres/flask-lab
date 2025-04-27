@@ -1,17 +1,12 @@
 from flask import Flask
 from flask_migrate import Migrate
-from app.extensions import db, csrf, login_manager
-# from app import models
-
-# from app.models import User, Admin
+from app.extensions import db, csrf, login_manager, cache
 
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 
 logging.basicConfig(filename='flask.log', level=logging.DEBUG)
-
-# asd
 
 def create_app():
     app = Flask(__name__)
@@ -36,6 +31,11 @@ def create_app():
     db.init_app(app)
     csrf.init_app(app)
     login_manager.init_app(app)
+
+    # app = Flask(__name__)
+    app.config['CACHE_TYPE'] = 'RedisCache'
+    app.config['CACHE_REDIS_URL'] = 'redis://redis:6379/0'
+    cache.init_app(app)
 
     from app import models
     from app.models import User, Admin, Dummy

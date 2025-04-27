@@ -1,13 +1,23 @@
 from flask import Blueprint, request, jsonify
+from app.extensions import cache
+import redis
+from flask import current_app
 
 from .models import db, User
 from . import csrf
+
+def invalidate_users_cache():
+    redis_client = redis.Redis.from_url(current_app.config['CACHE_REDIS_URL'])
+    keys = redis_client.keys('*api/users*')
+    if keys:
+        redis_client.delete(*keys)
 
 api = Blueprint('api', __name__, url_prefix='/api/users')
 csrf.exempt(api)  # Exempt the entire API blueprint from CSRF protection
 
 
 @api.route('', methods=['GET'])
+@cache.cached(timeout=60)
 def get_users():
     page = request.args.get('page', default=1, type=int)
     limit = request.args.get('limit', default=2, type=int)
@@ -49,6 +59,7 @@ def get_users():
 
 
 @api.route('/<int:user_id>', methods=['GET'])
+@cache.cached(timeout=60)
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify({'id': user.id, 'name': user.name})
@@ -62,6 +73,7 @@ def create_user():
     user = User(name=data['name'])
     db.session.add(user)
     db.session.commit()
+    invalidate_users_cache()
     return jsonify({'id': user.id, 'name': user.name}), 201
 
 
@@ -73,6 +85,7 @@ def update_user(user_id):
         return jsonify({'error': 'Missing name'}), 400
     user.name = data['name']
     db.session.commit()
+    invalidate_users_cache()
     return jsonify({'id': user.id, 'name': user.name})
 
 
@@ -81,4 +94,5 @@ def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
+    invalidate_users_cache()
     return '', 204
