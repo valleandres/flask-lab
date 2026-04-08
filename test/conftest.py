@@ -1,12 +1,13 @@
 import pytest
-from app.app import create_app, db
+from app import create_app
+from app.extensions import db
 
 @pytest.fixture
 def app():
-    app = create_app()
-    app.config.update({
+    app = create_app({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        "CACHE_TYPE": "SimpleCache",
         "WTF_CSRF_ENABLED": False,
     })
 

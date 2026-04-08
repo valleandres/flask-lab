@@ -8,13 +8,19 @@ import os
 
 logging.basicConfig(filename='flask.log', level=logging.DEBUG)
 
-def create_app():
+
+def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_mapping(
         SECRET_KEY='supersecretkey',
         SQLALCHEMY_DATABASE_URI='mysql+pymysql://user:password@db:3306/mydatabase',
-        SQLALCHEMY_TRACK_MODIFICATIONS=False
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        CACHE_TYPE='RedisCache',
+        CACHE_REDIS_URL='redis://redis:6379/0',
     )
+
+    if test_config:
+        app.config.update(test_config)
 
     # Logging setup
     if not os.path.exists("logs"):
@@ -32,9 +38,6 @@ def create_app():
     csrf.init_app(app)
     login_manager.init_app(app)
 
-    # app = Flask(__name__)
-    app.config['CACHE_TYPE'] = 'RedisCache'
-    app.config['CACHE_REDIS_URL'] = 'redis://redis:6379/0'
     cache.init_app(app)
 
     from app import models

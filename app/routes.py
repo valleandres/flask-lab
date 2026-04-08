@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template_string, request, redirect
+from flask import Blueprint, render_template_string, request, redirect, jsonify
 from .forms import NameForm
 from .models import db, User
 from flask_login import login_required, current_user
@@ -27,3 +27,12 @@ def index():
 @login_required
 def dashboard():
     return f"Welcome, {current_user.username}!"
+
+
+@main.route('/users', methods=['GET'])
+def users():
+    all_users = User.query.order_by(User.id.asc()).all()
+    return jsonify([
+        {'id': user.id, 'name': user.name}
+        for user in all_users
+    ])
