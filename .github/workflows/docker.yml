@@ -1,5 +1,8 @@
 name: Docker
 
+# Verifies that the Docker image can be built from the current source.
+# The broader CI workflow also runs a Docker build; this separate workflow keeps
+# Docker status visible on its own in GitHub Actions.
 on:
   push:
     branches: ["main"]

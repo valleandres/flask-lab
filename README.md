@@ -1,35 +1,96 @@
 # flask-lab
 
-## setup
-Add `127.0.0.1 flask.local` to `/etc/hosts` and checkout `http://flask.local/`.
+[![CI](https://github.com/valleandres/flask-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/valleandres/flask-lab/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/valleandres/flask-lab/actions/workflows/codeql.yml/badge.svg)](https://github.com/valleandres/flask-lab/actions/workflows/codeql.yml)
+[![Dependencies](https://github.com/valleandres/flask-lab/actions/workflows/dependencies.yml/badge.svg)](https://github.com/valleandres/flask-lab/actions/workflows/dependencies.yml)
+[![Docker](https://github.com/valleandres/flask-lab/actions/workflows/docker.yml/badge.svg)](https://github.com/valleandres/flask-lab/actions/workflows/docker.yml)
 
-## run unit tests
-Just run `docker compose run --rm test`
+`flask-lab` is a Flask application for practicing production-style Python web
+development. It includes REST endpoints, SQLAlchemy models, JWT authentication,
+unit tests, local quality checks, Docker support, and GitHub Actions workflows
+for CI, dependency auditing, CodeQL, and Docker image validation.
 
-## run postman tests with cli
-Install newman with `npm install -g newman` and run tests with `newman run postman/flask-lab.postman_collection.json`.
+## development setup
 
-## development
+Add the local development hostname:
 
-### venv (virtualenv)
+```bash
+echo "127.0.0.1 flask.local" | sudo tee -a /etc/hosts
+```
+
+Create a virtual environment and install dependencies:
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 python3 -m pip install -r requirements.txt
-deactivate
 ```
 
-### pylint
+Run the app with Docker Compose:
+
 ```bash
-pip3 install pylint
-pylint --generate-rcfile > .pylintrc
-vim .pylintrc
+docker compose up web
 ```
-vs code settings:
-```json
-{
-  "python.linting.enabled": true,
-  "python.linting.pylintEnabled": true,
-  "python.linting.pylintArgs": ["--rcfile=.pylintrc"]
-}
+
+Open:
+
+```text
+http://flask.local/
 ```
+
+## tests
+
+Run the unit tests in Docker:
+
+```bash
+docker compose run --rm test
+```
+
+Run the unit tests locally:
+
+```bash
+pytest
+```
+
+Run the Postman collection with Newman:
+
+```bash
+npm install -g newman
+newman run postman/flask-lab.postman_collection.json
+```
+
+## quality checks
+
+GitHub Actions runs the project checks on every push to `main`.
+
+- CI verifies Python syntax, tests with 100% coverage, Ruff, Pylint, Black, isort, Bandit, pre-commit hooks, and Docker image builds.
+- CodeQL scans the Python code for security issues and publishes code scanning results.
+- Dependency audit checks installed Python packages with `pip-audit`.
+- Docker validates that the application image can be built from the current source.
+
+Useful local commands:
+
+```bash
+pytest --cov=app --cov-report=term-missing --cov-fail-under=100
+ruff check app test migrations
+ruff format --check app test migrations
+pylint --rcfile=.pylintrc app test
+black --check app test migrations
+isort --check-only app test migrations
+bandit -r app --skip B106
+pre-commit run --all-files
+docker build .
+```
+
+## API
+
+The API is documented with OpenAPI in
+[docs/openapi.yaml](docs/openapi.yaml).
+
+## configuration
+
+TODO: document environment variables for Flask, JWT, database, and Redis.
+
+## deployment
+
+TODO: document the deployment target and release process.

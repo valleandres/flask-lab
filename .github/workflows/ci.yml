@@ -1,5 +1,8 @@
 name: CI
 
+# Runs the main quality gate whenever code is pushed to main.
+# This workflow is intentionally broad: tests, coverage, linting, formatting,
+# security linting, pre-commit hooks, and Docker build validation.
 on:
   push:
     branches: ["main"]

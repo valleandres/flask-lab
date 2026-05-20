@@ -1,5 +1,7 @@
 name: CodeQL
 
+# Runs GitHub CodeQL analysis on every push to main.
+# Results are uploaded to GitHub code scanning for the repository.
 on:
   push:
     branches: ["main"]
