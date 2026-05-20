@@ -1,5 +1,5 @@
-from app.extensions import db
 from flask_login import UserMixin
+from app.extensions import db
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -15,8 +15,6 @@ class Admin(UserMixin, db.Model):
     def __init__(self, username, password):
         self.username = username
         self.password = password
-
-from app.extensions import db
 
 class Dummy(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -8,7 +8,8 @@ auth_bp = Blueprint("auth", __name__)
 @csrf.exempt
 def login():
     data = request.json
-    if data["username"] == "admin" and data["password"] == "123": # FIXME
+    # TODO: Replace with real authentication
+    if data["username"] == "admin" and data["password"] == "123":
         token = generate_token(user_id=1)
         return jsonify(token=token)
     return jsonify({"error": "Invalid credentials"}), 401

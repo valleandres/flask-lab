@@ -1,13 +1,20 @@
-from flask import Flask
-from flask_migrate import Migrate
-from app.extensions import db, csrf, login_manager, cache
-
+import os
 import logging
 from logging.handlers import RotatingFileHandler
-import os
+
+from flask import Flask
+from flask_migrate import Migrate
+
+from app.extensions import db, csrf, login_manager, cache
+from app import models
+from app.models import User, Admin, Dummy
+from .routes import main
+
+from .api import api
+from .models import Admin
+from app.auth.routes import auth_bp
 
 logging.basicConfig(filename='flask.log', level=logging.DEBUG)
-
 
 def create_app(test_config=None):
     app = Flask(__name__)
@@ -40,24 +47,16 @@ def create_app(test_config=None):
 
     cache.init_app(app)
 
-    from app import models
-    from app.models import User, Admin, Dummy
+    # migrate = Migrate(app, db)
+    Migrate(app, db)
 
-    migrate = Migrate(app, db)
-
-    from .routes import main
     app.register_blueprint(main)
 
     # from .auth import auth
     # app.register_blueprint(auth)
-
-    from .api import api
     app.register_blueprint(api)
 
-    from app.auth.routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/auth")
-
-    from .models import Admin
 
     @login_manager.user_loader
     def load_user(user_id):

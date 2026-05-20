@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template_string, request, redirect, jsonify
+from flask import Blueprint, render_template_string, redirect, jsonify
+from flask_login import login_required, current_user
 from .forms import NameForm
 from .models import db, User
-from flask_login import login_required, current_user
+
 
 main = Blueprint('main', __name__)
 
