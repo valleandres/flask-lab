@@ -5,7 +5,7 @@
 - [ ] Replace `datetime.utcnow()` with timezone-aware UTC datetime usage.
 - [ ] Replace legacy `Query.get()` calls with `db.session.get(...)`.
 - [ ] Investigate and fix sqlite resource warnings in the test suite.
-- [ ] Review the shadowed legacy `app/auth.py` file and remove it if it is no longer needed.
+- [x] Review the shadowed legacy `app/auth.py` file and remove it if it is no longer needed.
 
 ## Security And Config
 

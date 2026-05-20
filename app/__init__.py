@@ -54,8 +54,6 @@ def create_app(test_config=None):
 
     app.register_blueprint(main)
 
-    # from .auth import auth
-    # app.register_blueprint(auth)
     app.register_blueprint(api)
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
