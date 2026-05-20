@@ -71,7 +71,7 @@ def test_delete_user(client):
     res = client.delete(f"/api/users/{created['id']}")
 
     assert res.status_code == 204
-    assert User.query.get(created["id"]) is None
+    assert db.session.get(User, created["id"]) is None
 
 
 def test_invalidate_users_cache_deletes_matching_redis_keys(app, monkeypatch):
@@ -110,7 +110,11 @@ def test_protected_accepts_valid_token(client):
 
 
 def test_decode_token_rejects_expired_token():
-    token = jwt.encode({"user_id": 1, "exp": 0}, Config.SECRET_KEY, algorithm="HS256")
+    token = jwt.encode(
+        {"user_id": 1, "exp": 0},
+        Config.JWT_SECRET_KEY,
+        algorithm="HS256",
+    )
 
     assert decode_token(token) is None
 

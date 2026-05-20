@@ -6,6 +6,7 @@ from flask import Flask
 from flask_migrate import Migrate
 
 from app.auth.routes import auth_bp
+from app.config import Config
 from app.extensions import cache, csrf, db, login_manager
 from app.models import Admin
 
@@ -18,11 +19,11 @@ logging.basicConfig(filename="flask.log", level=logging.DEBUG)
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_mapping(
-        SECRET_KEY="supersecretkey",
-        SQLALCHEMY_DATABASE_URI="mysql+pymysql://user:password@db:3306/mydatabase",
+        SECRET_KEY=Config.SECRET_KEY,
+        SQLALCHEMY_DATABASE_URI=Config.SQLALCHEMY_DATABASE_URI,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         CACHE_TYPE="RedisCache",
-        CACHE_REDIS_URL="redis://redis:6379/0",
+        CACHE_REDIS_URL=Config.CACHE_REDIS_URL,
     )
 
     if test_config:
@@ -61,7 +62,7 @@ def create_app(test_config=None):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return Admin.query.get(int(user_id))
+        return db.session.get(Admin, int(user_id))
 
     # with app.app_context():
     #     db.create_all()

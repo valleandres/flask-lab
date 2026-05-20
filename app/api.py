@@ -68,7 +68,7 @@ def get_users():
 @api.route("/<int:user_id>", methods=["GET"])
 @cache.cached(timeout=60)
 def get_user(user_id):
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     return jsonify({"id": user.id, "name": user.name})
 
 
@@ -86,7 +86,7 @@ def create_user():
 
 @api.route("/<int:user_id>", methods=["PUT"])
 def update_user(user_id):
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     data = request.get_json()
     if not data or "name" not in data:
         return jsonify({"error": "Missing name"}), 400
@@ -98,7 +98,7 @@ def update_user(user_id):
 
 @api.route("/<int:user_id>", methods=["DELETE"])
 def delete_user(user_id):
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     db.session.delete(user)
     db.session.commit()
     invalidate_users_cache()
