@@ -5,13 +5,11 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask
 from flask_migrate import Migrate
 
-from app import models
 from app.auth.routes import auth_bp
 from app.extensions import cache, csrf, db, login_manager
-from app.models import Admin, Dummy, User
+from app.models import Admin
 
 from .api import api
-from .models import Admin
 from .routes import main
 
 logging.basicConfig(filename="flask.log", level=logging.DEBUG)
