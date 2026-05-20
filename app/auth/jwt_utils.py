@@ -1,14 +1,19 @@
 # auth/jwt_utils.py
-import jwt
 import datetime
+
+import jwt
+
 from app.config import Config
+
 
 def generate_token(user_id):
     payload = {
         "user_id": user_id,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=Config.JWT_EXPIRATION_SECONDS)
+        "exp": datetime.datetime.utcnow()
+        + datetime.timedelta(seconds=Config.JWT_EXPIRATION_SECONDS),
     }
     return jwt.encode(payload, Config.SECRET_KEY, algorithm="HS256")
+
 
 def decode_token(token):
     try:

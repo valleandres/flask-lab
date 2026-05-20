@@ -1,29 +1,30 @@
-import os
 import logging
+import os
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask
 from flask_migrate import Migrate
 
-from app.extensions import db, csrf, login_manager, cache
 from app import models
-from app.models import User, Admin, Dummy
-from .routes import main
+from app.auth.routes import auth_bp
+from app.extensions import cache, csrf, db, login_manager
+from app.models import Admin, Dummy, User
 
 from .api import api
 from .models import Admin
-from app.auth.routes import auth_bp
+from .routes import main
 
-logging.basicConfig(filename='flask.log', level=logging.DEBUG)
+logging.basicConfig(filename="flask.log", level=logging.DEBUG)
+
 
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_mapping(
-        SECRET_KEY='supersecretkey',
-        SQLALCHEMY_DATABASE_URI='mysql+pymysql://user:password@db:3306/mydatabase',
+        SECRET_KEY="supersecretkey",
+        SQLALCHEMY_DATABASE_URI="mysql+pymysql://user:password@db:3306/mydatabase",
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        CACHE_TYPE='RedisCache',
-        CACHE_REDIS_URL='redis://redis:6379/0',
+        CACHE_TYPE="RedisCache",
+        CACHE_REDIS_URL="redis://redis:6379/0",
     )
 
     if test_config:
@@ -33,9 +34,11 @@ def create_app(test_config=None):
     if not os.path.exists("logs"):
         os.mkdir("logs")
     file_handler = RotatingFileHandler("logs/app.log", maxBytes=10240, backupCount=3)
-    file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
+    file_handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+        )
+    )
     file_handler.setLevel(logging.DEBUG)
     app.logger.addHandler(file_handler)
     app.logger.setLevel(logging.DEBUG)

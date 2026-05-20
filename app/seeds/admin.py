@@ -1,8 +1,9 @@
 from werkzeug.security import generate_password_hash
 
+from app import create_app
 from app.extensions import db
 from app.models import Admin
-from app import create_app
+
 
 def create_default_admin():
     app = create_app()

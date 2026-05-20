@@ -1,11 +1,12 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 from werkzeug.security import check_password_hash
 
-from app.auth.jwt_utils import generate_token, decode_token
+from app.auth.jwt_utils import decode_token, generate_token
 from app.extensions import csrf
 from app.models import Admin
 
 auth_bp = Blueprint("auth", __name__)
+
 
 @auth_bp.route("/login", methods=["POST"])
 @csrf.exempt
@@ -17,6 +18,7 @@ def login():
         token = generate_token(user_id=user.id)
         return jsonify(token=token)
     return jsonify({"error": "Invalid credentials"}), 401
+
 
 @auth_bp.route("/protected", methods=["GET"])
 def protected():

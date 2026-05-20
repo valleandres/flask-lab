@@ -5,6 +5,7 @@ def test_create_user(client):
     assert "id" in data
     assert data["name"] == "Andrés"
 
+
 def test_get_users(client):
     client.post("/api/users", json={"name": "Ana"})
     client.post("/api/users", json={"name": "Bruno"})
