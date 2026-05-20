@@ -1,12 +1,15 @@
-from flask import Blueprint, request, jsonify
-from app.extensions import cache
 import redis
-from flask import current_app
+from flask import Blueprint, current_app, request, jsonify
+
+from app.extensions import cache
 
 from .models import db, User
 from . import csrf
 
 def invalidate_users_cache():
+    if current_app.config.get('CACHE_TYPE') != 'RedisCache':
+        return
+
     redis_client = redis.Redis.from_url(current_app.config['CACHE_REDIS_URL'])
     keys = redis_client.keys('*api/users*')
     if keys:
