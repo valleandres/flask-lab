@@ -1,18 +1,7 @@
-from werkzeug.security import generate_password_hash
-
 from app.auth.jwt_utils import decode_token
-from app.extensions import db
-from app.models import Admin
 
 
-def create_admin(username="admin", password="admin"):
-    admin = Admin(username=username, password=generate_password_hash(password))
-    db.session.add(admin)
-    db.session.commit()
-    return admin
-
-
-def test_login_returns_token_for_valid_admin(client):
+def test_login_returns_token_for_valid_admin(client, create_admin):
     admin = create_admin()
 
     res = client.post(
@@ -26,7 +15,7 @@ def test_login_returns_token_for_valid_admin(client):
     assert decode_token(data["token"]) == admin.id
 
 
-def test_login_rejects_invalid_password(client):
+def test_login_rejects_invalid_password(client, create_admin):
     create_admin()
 
     res = client.post(

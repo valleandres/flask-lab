@@ -49,7 +49,6 @@ def create_app(test_config=None):
 
     cache.init_app(app)
 
-    # migrate = Migrate(app, db)
     Migrate(app, db)
 
     app.register_blueprint(main)
@@ -61,8 +60,5 @@ def create_app(test_config=None):
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(Admin, int(user_id))
-
-    # with app.app_context():
-    #     db.create_all()
 
     return app

@@ -20,10 +20,8 @@ class FakeRedis:
         self.deleted = keys
 
 
-def test_get_users_supports_filter_sort_and_pagination(client):
-    client.post("/api/users", json={"name": "Ana"})
-    client.post("/api/users", json={"name": "Bruno"})
-    client.post("/api/users", json={"name": "Anabel"})
+def test_get_users_supports_filter_sort_and_pagination(client, create_users):
+    create_users("Ana", "Bruno", "Anabel")
 
     res = client.get("/api/users?name=Ana&sort=name&order=desc&limit=1")
 
@@ -31,8 +29,8 @@ def test_get_users_supports_filter_sort_and_pagination(client):
     assert res.get_json()["data"] == [{"id": 3, "name": "Anabel"}]
 
 
-def test_get_single_user(client):
-    created = client.post("/api/users", json={"name": "Ana"}).get_json()
+def test_get_single_user(client, create_user):
+    created = create_user("Ana")
 
     res = client.get(f"/api/users/{created['id']}")
 
@@ -47,8 +45,8 @@ def test_create_user_requires_name(client):
     assert res.get_json() == {"error": "Missing name"}
 
 
-def test_update_user(client):
-    created = client.post("/api/users", json={"name": "Ana"}).get_json()
+def test_update_user(client, create_user):
+    created = create_user("Ana")
 
     res = client.put(f"/api/users/{created['id']}", json={"name": "Bruna"})
 
@@ -56,8 +54,8 @@ def test_update_user(client):
     assert res.get_json() == {"id": created["id"], "name": "Bruna"}
 
 
-def test_update_user_requires_name(client):
-    created = client.post("/api/users", json={"name": "Ana"}).get_json()
+def test_update_user_requires_name(client, create_user):
+    created = create_user("Ana")
 
     res = client.put(f"/api/users/{created['id']}", json={})
 
@@ -65,8 +63,8 @@ def test_update_user_requires_name(client):
     assert res.get_json() == {"error": "Missing name"}
 
 
-def test_delete_user(client):
-    created = client.post("/api/users", json={"name": "Ana"}).get_json()
+def test_delete_user(client, create_user):
+    created = create_user("Ana")
 
     res = client.delete(f"/api/users/{created['id']}")
 

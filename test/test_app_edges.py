@@ -1,9 +1,6 @@
 import os
 
-from werkzeug.security import generate_password_hash
-
 from app import create_app
-from app.extensions import db
 from app.models import Admin
 from app.seeds import admin as admin_seed
 
@@ -17,10 +14,8 @@ def test_create_app_creates_logs_directory(tmp_path, monkeypatch):
     assert os.path.isdir("logs")
 
 
-def test_dashboard_uses_logged_in_admin(client):
-    admin = Admin(username="admin", password=generate_password_hash("admin"))
-    db.session.add(admin)
-    db.session.commit()
+def test_dashboard_uses_logged_in_admin(client, create_admin):
+    admin = create_admin()
 
     with client.session_transaction() as session:
         session["_user_id"] = str(admin.id)
@@ -41,9 +36,8 @@ def test_seed_creates_default_admin(app, monkeypatch, capsys):
     assert "[SEED] Default admin user created." in capsys.readouterr().out
 
 
-def test_seed_skips_existing_default_admin(app, monkeypatch, capsys):
-    db.session.add(Admin(username="admin", password="hash"))
-    db.session.commit()
+def test_seed_skips_existing_default_admin(app, monkeypatch, capsys, create_admin):
+    create_admin()
     monkeypatch.setattr(admin_seed, "create_app", lambda: app)
 
     admin_seed.create_default_admin()

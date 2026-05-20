@@ -6,6 +6,11 @@ from app.extensions import cache
 from . import csrf
 from .models import User, db
 
+USER_SORT_COLUMNS = {
+    "id": User.id,
+    "name": User.name,
+}
+
 
 def invalidate_users_cache():
     if current_app.config.get("CACHE_TYPE") != "RedisCache":
@@ -18,7 +23,20 @@ def invalidate_users_cache():
 
 
 api = Blueprint("api", __name__, url_prefix="/api/users")
-csrf.exempt(api)  # Exempt the entire API blueprint from CSRF protection
+csrf.exempt(api)
+
+
+def filter_users_by_name(query, name_filter):
+    if not name_filter:
+        return query
+    return query.filter(User.name.ilike(f"%{name_filter}%"))
+
+
+def sort_users(query, sort_field, sort_order):
+    sort_column = USER_SORT_COLUMNS.get(sort_field, User.id)
+    if sort_order == "desc":
+        return query.order_by(sort_column.desc())
+    return query.order_by(sort_column.asc())
 
 
 @api.route("", methods=["GET"])
@@ -31,24 +49,8 @@ def get_users():
     sort_order = request.args.get("order", default="asc")
 
     query = User.query
-
-    # Apply filtering based on the name query parameter
-    if name_filter:
-        query = query.filter(User.name.ilike(f"%{name_filter}%"))
-
-    # Allow only certain fields to be sorted
-    allowed_sort_fields = {
-        "id": User.id,
-        "name": User.name,
-    }
-
-    # Validate the sort field
-    sort_column = allowed_sort_fields.get(sort_field, User.id)
-
-    if sort_order == "desc":
-        query = query.order_by(sort_column.desc())
-    else:
-        query = query.order_by(sort_column.asc())
+    query = filter_users_by_name(query, name_filter)
+    query = sort_users(query, sort_field, sort_order)
 
     users_query = query.paginate(page=page, per_page=limit, error_out=False)
 
