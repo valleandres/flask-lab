@@ -18,13 +18,27 @@ Add the local development hostname:
 echo "127.0.0.1 flask.local" | sudo tee -a /etc/hosts
 ```
 
-Create a virtual environment and install dependencies:
+Install `uv`:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-python3 -m pip install -r requirements.txt
+python3 -m pip install uv
 ```
+
+Create the existing `venv/` virtual environment and install dependencies with
+`uv`:
+
+```bash
+uv venv venv
+source venv/bin/activate
+uv pip install -r requirements.txt
+```
+
+`requirements.txt` is still the dependency source for this project. `uv` is
+used here as a faster environment and package installer.
+
+The existing `venv/` directory can be managed by either `uv` or standard
+`venv`/`pip` commands. Prefer one workflow per setup session to avoid confusing
+your local environment.
 
 Run the app with Docker Compose:
 
@@ -71,6 +85,7 @@ GitHub Actions runs the project checks on every push to `main`.
 Useful local commands:
 
 ```bash
+uv pip install black isort bandit pylint ruff pytest-cov pre-commit
 pytest --cov=app --cov-report=term-missing --cov-fail-under=100
 ruff check app test migrations
 ruff format --check app test migrations
