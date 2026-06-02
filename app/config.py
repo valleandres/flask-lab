@@ -1,4 +1,29 @@
 import os
+from pathlib import Path
+
+
+def load_env_file(env_file=None):
+    selected_env_file = env_file or os.getenv("ENV_FILE")
+    if not selected_env_file:
+        return None
+
+    path = Path(selected_env_file)
+    if not path.exists():
+        return None
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        os.environ.setdefault(key, value)
+
+    return path
 
 
 def env_bool(name, default=False):
@@ -6,6 +31,9 @@ def env_bool(name, default=False):
     if value is None:
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+load_env_file()
 
 
 class Config:

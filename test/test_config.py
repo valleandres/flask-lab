@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from app.config import (
@@ -6,6 +8,7 @@ from app.config import (
     TestingConfig,
     env_bool,
     get_config,
+    load_env_file,
     validate_config,
 )
 
@@ -20,6 +23,47 @@ def test_env_bool_reads_truthy_values(monkeypatch):
     monkeypatch.setenv("FEATURE_FLAG", "true")
 
     assert env_bool("FEATURE_FLAG")
+
+
+def test_load_env_file_reads_values(tmp_path, monkeypatch):
+    env_file = tmp_path / ".env.custom"
+    env_file.write_text(
+        "\n".join(
+            [
+                "# ignored",
+                "CUSTOM_VALUE=from-file",
+                "QUOTED_VALUE='quoted from file'",
+                "MALFORMED_LINE",
+            ]
+        )
+    )
+    monkeypatch.delenv("CUSTOM_VALUE", raising=False)
+    monkeypatch.delenv("QUOTED_VALUE", raising=False)
+
+    assert load_env_file(env_file) == env_file
+
+    assert os.environ["CUSTOM_VALUE"] == "from-file"
+    assert os.environ["QUOTED_VALUE"] == "quoted from file"
+
+
+def test_load_env_file_does_not_override_existing_values(tmp_path, monkeypatch):
+    env_file = tmp_path / ".env.custom"
+    env_file.write_text("CUSTOM_VALUE=from-file\n")
+    monkeypatch.setenv("CUSTOM_VALUE", "from-shell")
+
+    load_env_file(env_file)
+
+    assert os.environ["CUSTOM_VALUE"] == "from-shell"
+
+
+def test_load_env_file_ignores_missing_file(tmp_path):
+    assert load_env_file(tmp_path / ".env.missing") is None
+
+
+def test_load_env_file_skips_when_no_file_selected(monkeypatch):
+    monkeypatch.delenv("ENV_FILE", raising=False)
+
+    assert load_env_file() is None
 
 
 def test_get_config_reads_environment(monkeypatch):

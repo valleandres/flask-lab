@@ -40,10 +40,12 @@ The existing `venv/` directory can be managed by either `uv` or standard
 `venv`/`pip` commands. Prefer one workflow per setup session to avoid confusing
 your local environment.
 
-Run the app with Docker Compose:
+Create the local development environment file and run the app with Docker
+Compose:
 
 ```bash
-docker compose up web
+cp .env.development.example .env.development
+ENV_FILE=.env.development docker compose up -d
 ```
 
 Open:
@@ -102,15 +104,41 @@ docker build .
 The API is documented with OpenAPI in
 [docs/openapi.yaml](docs/openapi.yaml).
 
-### file storage
+### environment files
 
-Copy the example environment file before configuring storage:
+Only safe environment templates are versioned. Real environment files are
+ignored by Git:
+
+- `.env.development` for local development and Docker Compose.
+- `.env.production` for AWS/production-shaped runs.
+
+Create them from the templates:
 
 ```bash
-cp .env.example .env
+cp .env.development.example .env.development
+cp .env.production.example .env.production
 ```
 
-The `.env` file is ignored by Git. Docker Compose reads it automatically.
+Docker Compose loads the file selected by `ENV_FILE`:
+
+```bash
+ENV_FILE=.env.development docker compose up -d
+ENV_FILE=.env.production docker compose up -d web
+```
+
+Use the `web` service when running with `.env.production` so the app uses AWS
+RDS, ElastiCache, and S3 instead of relying on the local support containers.
+The local `db` and `redis` services remain available for development.
+
+When running Flask directly from the host, pass the same selector:
+
+```bash
+ENV_FILE=.env.development flask --app app:create_app run --port 5000
+ENV_FILE=.env.production flask --app app:create_app run --port 5000
+```
+
+Environment variables already exported in the shell take precedence over values
+loaded from the selected file.
 
 `APP_ENV` selects one of the application configurations:
 
@@ -171,8 +199,8 @@ secret manager, not in this repository. If Redis is not available for a local
 run outside Docker Compose, set `CACHE_TYPE=SimpleCache`.
 
 Use [.env.production.example](.env.production.example) as the production-shaped
-template. Keep the real values in a deployment secret store or in the ignored
-local `.env` file when testing manually.
+template. Keep real values in `.env.production` for manual testing, or in a
+deployment secret store for deployed environments.
 
 For local file storage, keep:
 
@@ -203,22 +231,9 @@ name, not an access key. Credentials remain in the local AWS configuration
 outside this repository. Each uploaded object gets a generated key such as
 `files/<uuid>_report.pdf`, returned by `POST /files`.
 
-Docker Compose reads `.env` automatically. To run Flask directly from the host,
-load and export the variables before starting the app:
-
-```bash
-set -a
-source .env
-set +a
-flask --app app:create_app run --port 5000
-```
-
-`set -a` makes assignments loaded from `.env` available to child processes.
-`set +a` restores the normal shell behavior afterward.
-
-Docker Compose mounts the local `~/.aws` directory read-only so the development
-container can use `AWS_PROFILE`. For other environments, provide another
-standard boto3 credential source.
+Docker Compose mounts the local `~/.aws` directory read-only so manual local AWS
+testing can use `AWS_PROFILE`. On EC2, prefer the instance profile/IAM role and
+leave `AWS_PROFILE` unset.
 
 Upload a file, request an access URL, and delete the file:
 
@@ -246,9 +261,10 @@ receive traffic. Docker Compose uses `/health` for its container healthcheck.
 
 ## configuration
 
-Development defaults live in [.env.example](.env.example). Keep secrets in the
-ignored local `.env` file or in the secret manager used by the deployment
-environment.
+Development defaults live in [.env.development.example](.env.development.example).
+Production-shaped defaults live in
+[.env.production.example](.env.production.example). Keep secrets in ignored
+local env files or in the secret manager used by the deployment environment.
 
 ## deployment
 
