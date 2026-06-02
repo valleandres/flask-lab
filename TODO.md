@@ -61,6 +61,15 @@
 - [ ] Add database indexes if user lookup grows beyond the demo dataset.
 - [ ] Decide whether `Dummy` model is still needed.
 
+## Integration Testing
+
+- [ ] Keep the fast unit-test suite on in-memory SQLite.
+- [ ] Adapt reusable database fixtures so integration tests can run against MySQL 8.
+- [ ] Add a MySQL 8 service container to GitHub Actions for integration tests.
+- [ ] Run database migrations against disposable MySQL before integration tests.
+- [ ] Add Redis integration tests with a disposable Redis service container.
+- [ ] Keep tests that require real AWS resources separate from the normal CI suite.
+
 ## GitHub
 
 - [ ] Protect the `main` branch.
@@ -114,3 +123,8 @@
 - [ ] Choose a production Redis provider or disable Redis cache if unnecessary.
 - [ ] Document deployment environment variables.
 - [ ] Add deployment smoke-test steps.
+- [ ] Define an ephemeral AWS staging environment with Terraform.
+- [ ] Add a manual GitHub Actions workflow to provision the ephemeral Terraform stack on demand.
+- [ ] Deploy the application, run migrations, verify `/ready`, and run integration smoke tests against ephemeral staging.
+- [ ] Destroy the ephemeral Terraform stack even when the validation workflow fails.
+- [ ] Store Terraform state safely and document recovery steps for failed stack cleanup.
