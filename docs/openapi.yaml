@@ -15,7 +15,39 @@ tags:
     description: User CRUD endpoints.
   - name: Files
     description: Configurable local or private S3 file storage endpoints.
+  - name: Operations
+    description: Liveness and readiness endpoints for infrastructure monitoring.
 paths:
+  /health:
+    get:
+      tags:
+        - Operations
+      summary: Check whether the Flask process is running.
+      responses:
+        "200":
+          description: Application process is running.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /ready:
+    get:
+      tags:
+        - Operations
+      summary: Check whether the application can receive traffic.
+      responses:
+        "200":
+          description: Application and database are ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: A required dependency is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
   /auth/login:
     post:
       tags:
@@ -238,6 +270,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "502":
+          description: Storage service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     delete:
       tags:
         - Files
@@ -259,6 +297,12 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Local file not found.
+        "502":
+          description: Storage service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /files/url:
     get:
       tags:
@@ -284,7 +328,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Local file not found.
+          description: Local or S3 file not found.
+        "502":
+          description: Storage service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /files/content:
     get:
       tags:
@@ -315,6 +365,36 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+    ReadinessResponse:
+      type: object
+      required:
+        - status
+        - checks
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - unavailable
+        checks:
+          type: object
+          required:
+            - database
+          properties:
+            database:
+              type: string
+              enum:
+                - ok
+                - error
     LoginRequest:
       type: object
       required:

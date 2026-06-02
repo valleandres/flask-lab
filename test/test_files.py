@@ -2,7 +2,7 @@ from io import BytesIO
 from unittest.mock import Mock
 from urllib.parse import urlsplit
 
-from app.storage import S3Storage, S3StorageConfig
+from app.storage import S3Storage, S3StorageConfig, StorageOperationError
 
 
 def test_local_file_lifecycle(client, app):
@@ -45,6 +45,17 @@ def test_upload_rejects_invalid_filename(client):
     assert response.get_json() == {"error": "Invalid filename"}
 
 
+def test_upload_returns_bad_gateway_when_storage_fails(client, app):
+    storage = Mock()
+    storage.save.side_effect = StorageOperationError("Storage service unavailable")
+    app.extensions["storage"] = storage
+
+    response = client.post("/files", data={"file": (BytesIO(b"hello"), "hello.txt")})
+
+    assert response.status_code == 502
+    assert response.get_json() == {"error": "Storage service unavailable"}
+
+
 def test_file_url_requires_key(client):
     response = client.get("/files/url")
 
@@ -66,6 +77,17 @@ def test_file_url_returns_not_found(client):
     assert response.get_json() == {"error": "File not found"}
 
 
+def test_file_url_returns_bad_gateway_when_storage_fails(client, app):
+    storage = Mock()
+    storage.get_url.side_effect = StorageOperationError("Storage service unavailable")
+    app.extensions["storage"] = storage
+
+    response = client.get("/files/url", query_string={"key": "unused"})
+
+    assert response.status_code == 502
+    assert response.get_json() == {"error": "Storage service unavailable"}
+
+
 def test_delete_requires_key(client):
     response = client.delete("/files")
 
@@ -85,6 +107,17 @@ def test_delete_returns_not_found(client):
 
     assert response.status_code == 404
     assert response.get_json() == {"error": "File not found"}
+
+
+def test_delete_returns_bad_gateway_when_storage_fails(client, app):
+    storage = Mock()
+    storage.delete.side_effect = StorageOperationError("Storage service unavailable")
+    app.extensions["storage"] = storage
+
+    response = client.delete("/files", query_string={"key": "unused"})
+
+    assert response.status_code == 502
+    assert response.get_json() == {"error": "Storage service unavailable"}
 
 
 def test_download_requires_key(client):

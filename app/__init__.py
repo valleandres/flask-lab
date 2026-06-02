@@ -6,37 +6,31 @@ from flask import Flask
 from flask_migrate import Migrate
 
 from app.auth.routes import auth_bp
-from app.config import Config
+from app.config import get_config, validate_config
 from app.extensions import cache, csrf, db, login_manager
 from app.models import Admin
 
 from .api import api
 from .files import files
+from .health import health
 from .routes import main
 from .storage import create_storage
 
 logging.basicConfig(filename="flask.log", level=logging.DEBUG)
 
 
-def create_app(test_config=None):
+def create_app(config_name=None, test_config=None):
+    if isinstance(config_name, dict):
+        test_config = config_name
+        config_name = None
+
     app = Flask(__name__)
-    app.config.from_mapping(
-        SECRET_KEY=Config.SECRET_KEY,
-        SQLALCHEMY_DATABASE_URI=Config.SQLALCHEMY_DATABASE_URI,
-        SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        CACHE_TYPE="RedisCache",
-        CACHE_REDIS_URL=Config.CACHE_REDIS_URL,
-        STORAGE_BACKEND=Config.STORAGE_BACKEND,
-        LOCAL_UPLOAD_FOLDER=Config.LOCAL_UPLOAD_FOLDER,
-        AWS_PROFILE=Config.AWS_PROFILE,
-        AWS_REGION=Config.AWS_REGION,
-        S3_BUCKET_NAME=Config.S3_BUCKET_NAME,
-        S3_UPLOAD_PREFIX=Config.S3_UPLOAD_PREFIX,
-        S3_PRESIGNED_URL_EXPIRATION=Config.S3_PRESIGNED_URL_EXPIRATION,
-    )
+    app.config.from_object(get_config(config_name))
 
     if test_config:
         app.config.update(test_config)
+
+    validate_config(app.config)
 
     # Logging setup
     if not os.path.exists("logs"):
@@ -69,6 +63,8 @@ def create_app(test_config=None):
     app.register_blueprint(auth_bp, url_prefix="/auth")
 
     app.register_blueprint(files)
+
+    app.register_blueprint(health)
 
     @login_manager.user_loader
     def load_user(user_id):

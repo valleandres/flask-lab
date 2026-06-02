@@ -2,9 +2,11 @@ import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from typing import NoReturn
 from uuid import uuid4
 
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 from flask import url_for
 from werkzeug.utils import secure_filename
 
@@ -13,6 +15,17 @@ STORAGE_KEY_PATTERN = re.compile(r"^[0-9a-f]{32}_[A-Za-z0-9_.-]+$")
 
 class InvalidStorageKey(ValueError):
     pass
+
+
+class StorageOperationError(RuntimeError):
+    pass
+
+
+def raise_storage_error(error) -> NoReturn:
+    error_code = getattr(error, "response", {}).get("Error", {}).get("Code")
+    if error_code in {"404", "NoSuchKey", "NotFound"}:
+        raise FileNotFoundError from error
+    raise StorageOperationError("Storage service unavailable") from error
 
 
 def generate_storage_key(filename):
@@ -120,25 +133,35 @@ class S3Storage(Storage):
 
     def save(self, uploaded_file):
         key = self._key_for_filename(uploaded_file.filename)
-        self.client.upload_fileobj(
-            uploaded_file.stream,
-            self.bucket_name,
-            key,
-            ExtraArgs={"ContentType": uploaded_file.mimetype},
-        )
+        try:
+            self.client.upload_fileobj(
+                uploaded_file.stream,
+                self.bucket_name,
+                key,
+                ExtraArgs={"ContentType": uploaded_file.mimetype},
+            )
+        except (BotoCoreError, ClientError) as error:
+            raise_storage_error(error)
         return key
 
     def get_url(self, key):
         validate_storage_key(key, self.upload_prefix)
-        return self.client.generate_presigned_url(
-            "get_object",
-            Params={"Bucket": self.bucket_name, "Key": key},
-            ExpiresIn=self.presigned_url_expiration,
-        )
+        try:
+            self.client.head_object(Bucket=self.bucket_name, Key=key)
+            return self.client.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": self.bucket_name, "Key": key},
+                ExpiresIn=self.presigned_url_expiration,
+            )
+        except (BotoCoreError, ClientError) as error:
+            raise_storage_error(error)
 
     def delete(self, key):
         validate_storage_key(key, self.upload_prefix)
-        self.client.delete_object(Bucket=self.bucket_name, Key=key)
+        try:
+            self.client.delete_object(Bucket=self.bucket_name, Key=key)
+        except (BotoCoreError, ClientError) as error:
+            raise_storage_error(error)
 
     def _key_for_filename(self, filename):
         filename_key = generate_storage_key(filename)

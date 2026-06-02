@@ -2,6 +2,7 @@ from io import BytesIO
 from unittest.mock import Mock
 
 import pytest
+from botocore.exceptions import ClientError
 from werkzeug.datastructures import FileStorage
 
 from app import storage as storage_module
@@ -10,6 +11,7 @@ from app.storage import (
     LocalStorage,
     S3Storage,
     S3StorageConfig,
+    StorageOperationError,
     create_storage,
     generate_storage_key,
     normalize_prefix,
@@ -23,6 +25,10 @@ def make_uploaded_file(filename="report.txt", content=b"content"):
         filename=filename,
         content_type="text/plain",
     )
+
+
+def make_client_error(error_code, operation_name):
+    return ClientError({"Error": {"Code": error_code}}, operation_name)
 
 
 def test_local_storage_saves_sanitized_file_and_deletes_it(tmp_path):
@@ -100,6 +106,7 @@ def test_s3_storage_uses_private_object_operations():
         key,
         ExtraArgs={"ContentType": "text/plain"},
     )
+    client.head_object.assert_called_once_with(Bucket="private-bucket", Key=key)
     client.generate_presigned_url.assert_called_once_with(
         "get_object",
         Params={"Bucket": "private-bucket", "Key": key},
@@ -137,6 +144,51 @@ def test_s3_storage_rejects_invalid_keys():
 
     with pytest.raises(InvalidStorageKey):
         storage.delete("other/report.txt")
+
+
+def test_s3_storage_maps_missing_object_to_file_not_found():
+    client = Mock()
+    client.head_object.side_effect = make_client_error("NoSuchKey", "HeadObject")
+    storage = S3Storage(
+        S3StorageConfig(bucket_name="private-bucket", upload_prefix="uploads"),
+        client=client,
+    )
+
+    with pytest.raises(FileNotFoundError):
+        storage.get_url(f"uploads/{'a' * 32}_missing.txt")
+
+
+def test_s3_storage_maps_upload_error_to_storage_operation_error():
+    client = Mock()
+    client.upload_fileobj.side_effect = make_client_error("NoSuchBucket", "PutObject")
+    storage = S3Storage(S3StorageConfig(bucket_name="private-bucket"), client=client)
+
+    with pytest.raises(StorageOperationError, match="Storage service unavailable"):
+        storage.save(make_uploaded_file())
+
+
+def test_s3_storage_maps_url_error_to_storage_operation_error():
+    client = Mock()
+    client.head_object.side_effect = make_client_error("AccessDenied", "HeadObject")
+    storage = S3Storage(
+        S3StorageConfig(bucket_name="private-bucket", upload_prefix="uploads"),
+        client=client,
+    )
+
+    with pytest.raises(StorageOperationError, match="Storage service unavailable"):
+        storage.get_url(f"uploads/{'a' * 32}_report.txt")
+
+
+def test_s3_storage_maps_delete_error_to_storage_operation_error():
+    client = Mock()
+    client.delete_object.side_effect = make_client_error("AccessDenied", "DeleteObject")
+    storage = S3Storage(
+        S3StorageConfig(bucket_name="private-bucket", upload_prefix="uploads"),
+        client=client,
+    )
+
+    with pytest.raises(StorageOperationError, match="Storage service unavailable"):
+        storage.delete(f"uploads/{'a' * 32}_report.txt")
 
 
 def test_s3_storage_creates_boto_client_lazily(monkeypatch):

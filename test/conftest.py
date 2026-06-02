@@ -9,13 +9,10 @@ from app.models import Admin
 @pytest.fixture
 def app(tmp_path):
     app = create_app(
+        "testing",
         {
-            "TESTING": True,
-            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-            "CACHE_TYPE": "SimpleCache",
-            "WTF_CSRF_ENABLED": False,
             "LOCAL_UPLOAD_FOLDER": str(tmp_path / "uploads"),
-        }
+        },
     )
 
     with app.app_context():

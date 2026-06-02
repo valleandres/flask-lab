@@ -1,7 +1,7 @@
 from app.auth.jwt_utils import decode_token
 
 
-def test_login_returns_token_for_valid_admin(client, create_admin):
+def test_login_returns_token_for_valid_admin(client, create_admin, app):
     admin = create_admin()
 
     res = client.post(
@@ -12,7 +12,8 @@ def test_login_returns_token_for_valid_admin(client, create_admin):
     assert res.status_code == 200
     data = res.get_json()
     assert "token" in data
-    assert decode_token(data["token"]) == admin.id
+    with app.app_context():
+        assert decode_token(data["token"]) == admin.id
 
 
 def test_login_rejects_invalid_password(client, create_admin):

@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, current_app, jsonify, request, send_file
 
 from .extensions import csrf
-from .storage import InvalidStorageKey, LocalStorage
+from .storage import InvalidStorageKey, LocalStorage, StorageOperationError
 
 files = Blueprint("files", __name__)
 csrf.exempt(files)
@@ -15,6 +15,11 @@ def get_requested_key():
     return request.args.get("key")
 
 
+def storage_error_response(error):
+    current_app.logger.error("Storage operation failed: %s", error)
+    return jsonify({"error": "Storage service unavailable"}), 502
+
+
 @files.post("/files")
 def upload_file():
     uploaded_file = request.files.get("file")
@@ -25,6 +30,8 @@ def upload_file():
         key = get_storage().save(uploaded_file)
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
+    except StorageOperationError as error:
+        return storage_error_response(error)
     return jsonify({"key": key}), 201
 
 
@@ -40,6 +47,8 @@ def get_file_url():
         return jsonify({"error": str(error)}), 400
     except FileNotFoundError:
         return jsonify({"error": "File not found"}), 404
+    except StorageOperationError as error:
+        return storage_error_response(error)
     return jsonify({"key": key, "url": url})
 
 
@@ -55,6 +64,8 @@ def delete_file():
         return jsonify({"error": str(error)}), 400
     except FileNotFoundError:
         return jsonify({"error": "File not found"}), 404
+    except StorageOperationError as error:
+        return storage_error_response(error)
     return "", 204
 
 

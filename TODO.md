@@ -34,11 +34,13 @@
 - [x] Use a stronger JWT secret for local/dev/test settings.
 - [x] Add `.env.example` with documented development defaults.
 - [ ] Require real `SECRET_KEY` and `JWT_SECRET_KEY` in production.
-- [ ] Split configuration by environment: development, testing, production.
+- [x] Split configuration by environment: development, testing, production.
 - [ ] Move MySQL passwords in `docker-compose.yaml` behind environment variables.
 - [ ] Add password policy or stronger admin seed password handling.
 - [ ] Add token expiration tests.
 - [ ] Consider refresh tokens or token revocation if sessions need longer lifetimes.
+- [ ] Create a least-privilege IAM identity for local S3 development instead of using the administrator profile.
+- [ ] Create a least-privilege EC2 IAM role and instance profile for S3, Parameter Store, ECR, and Systems Manager access.
 
 ## Docker
 
@@ -48,8 +50,8 @@
 - [ ] Use a production WSGI server such as Gunicorn instead of `flask run` for non-development images.
 - [ ] Add a non-root user to the Docker image.
 - [ ] Optimize Docker layer caching by copying `requirements.txt` before the rest of the source.
-- [ ] Add a Docker healthcheck.
-- [ ] Decide whether `pytest` belongs in production `requirements.txt` or a separate development requirements file.
+- [x] Add a Docker healthcheck.
+- [ ] Split production dependencies into `requirements.txt` and development/test tools into `requirements-dev.txt`.
 
 ## Database And Migrations
 
@@ -73,6 +75,7 @@
 - [ ] If PRs are introduced, require CI, CodeQL, dependency audit, and Docker checks before merging.
 - [ ] Consider enabling signed commits later if commit provenance becomes important.
 - [ ] Add scheduled dependency audit runs in addition to push-based runs.
+- [ ] Add automatic EC2 deployment with GitHub Actions OIDC, ECR images, and Systems Manager Run Command.
 
 ## API Documentation
 
@@ -96,7 +99,7 @@
 - [ ] Make log level configurable by environment.
 - [ ] Avoid global `logging.basicConfig` side effects at import time.
 - [ ] Use structured or consistent request logging.
-- [ ] Add a lightweight health endpoint.
+- [x] Add lightweight health and readiness endpoints.
 - [ ] Decide where application logs should go in Docker and production.
 
 ## Deployment
@@ -106,6 +109,7 @@
 - [ ] Evaluate Railway.
 - [ ] Evaluate Fly.io.
 - [ ] Evaluate Docker-based VPS deployment.
+- [ ] Configure managed Redis before RDS to validate the existing cache integration.
 - [ ] Choose a production database provider.
 - [ ] Choose a production Redis provider or disable Redis cache if unnecessary.
 - [ ] Document deployment environment variables.

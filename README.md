@@ -112,6 +112,17 @@ cp .env.example .env
 
 The `.env` file is ignored by Git. Docker Compose reads it automatically.
 
+`APP_ENV` selects one of the application configurations:
+
+```dotenv
+APP_ENV=development
+```
+
+- `development` enables debug mode and local development defaults.
+- `testing` uses SQLite, simple in-process cache, and local file storage.
+- `production` requires `SECRET_KEY`, `JWT_SECRET_KEY`, and
+  `SQLALCHEMY_DATABASE_URI` to be set explicitly.
+
 For local file storage, keep:
 
 ```dotenv
@@ -166,9 +177,26 @@ curl "$BASE_URL/files/url?key=<key>"
 curl -X DELETE "$BASE_URL/files?key=<key>"
 ```
 
+### operational checks
+
+The app exposes two unauthenticated endpoints for container and infrastructure
+monitoring:
+
+```bash
+BASE_URL=http://flask.local
+curl "$BASE_URL/health"
+curl "$BASE_URL/ready"
+```
+
+`GET /health` reports that the Flask process is running. `GET /ready` also
+executes a lightweight database query and returns `503` when the app should not
+receive traffic. Docker Compose uses `/health` for its container healthcheck.
+
 ## configuration
 
-TODO: document environment variables for Flask, JWT, database, and Redis.
+Development defaults live in [.env.example](.env.example). Keep secrets in the
+ignored local `.env` file or in the secret manager used by the deployment
+environment.
 
 ## deployment
 

@@ -4,7 +4,6 @@ import jwt
 
 from app.api import invalidate_users_cache
 from app.auth.jwt_utils import decode_token, generate_token
-from app.config import Config
 from app.extensions import db
 from app.models import User
 
@@ -98,8 +97,9 @@ def test_protected_rejects_invalid_token(client):
     assert res.get_json() == {"error": "Invalid or expired token"}
 
 
-def test_protected_accepts_valid_token(client):
-    token = generate_token(42)
+def test_protected_accepts_valid_token(client, app):
+    with app.app_context():
+        token = generate_token(42)
 
     res = client.get("/auth/protected", headers={"Authorization": f"Bearer {token}"})
 
@@ -107,14 +107,15 @@ def test_protected_accepts_valid_token(client):
     assert res.get_json() == {"message": "Access granted for user 42."}
 
 
-def test_decode_token_rejects_expired_token():
-    token = jwt.encode(
-        {"user_id": 1, "exp": 0},
-        Config.JWT_SECRET_KEY,
-        algorithm="HS256",
-    )
+def test_decode_token_rejects_expired_token(app):
+    with app.app_context():
+        token = jwt.encode(
+            {"user_id": 1, "exp": 0},
+            app.config["JWT_SECRET_KEY"],
+            algorithm="HS256",
+        )
 
-    assert decode_token(token) is None
+        assert decode_token(token) is None
 
 
 def test_index_creates_user(client):
