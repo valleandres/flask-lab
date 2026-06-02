@@ -11,7 +11,9 @@ from app.extensions import cache, csrf, db, login_manager
 from app.models import Admin
 
 from .api import api
+from .files import files
 from .routes import main
+from .storage import create_storage
 
 logging.basicConfig(filename="flask.log", level=logging.DEBUG)
 
@@ -24,6 +26,13 @@ def create_app(test_config=None):
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         CACHE_TYPE="RedisCache",
         CACHE_REDIS_URL=Config.CACHE_REDIS_URL,
+        STORAGE_BACKEND=Config.STORAGE_BACKEND,
+        LOCAL_UPLOAD_FOLDER=Config.LOCAL_UPLOAD_FOLDER,
+        AWS_PROFILE=Config.AWS_PROFILE,
+        AWS_REGION=Config.AWS_REGION,
+        S3_BUCKET_NAME=Config.S3_BUCKET_NAME,
+        S3_UPLOAD_PREFIX=Config.S3_UPLOAD_PREFIX,
+        S3_PRESIGNED_URL_EXPIRATION=Config.S3_PRESIGNED_URL_EXPIRATION,
     )
 
     if test_config:
@@ -51,11 +60,15 @@ def create_app(test_config=None):
 
     Migrate(app, db)
 
+    app.extensions["storage"] = create_storage(app.config)
+
     app.register_blueprint(main)
 
     app.register_blueprint(api)
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
+
+    app.register_blueprint(files)
 
     @login_manager.user_loader
     def load_user(user_id):

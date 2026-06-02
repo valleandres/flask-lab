@@ -21,6 +21,8 @@
 - [ ] Add tests for pagination edge cases.
 - [ ] Add tests for invalid sort and order query parameters.
 - [ ] Consider adding admin/user role checks before modifying users.
+- [ ] Require JWT authentication for file storage endpoints.
+- [ ] Add semantic S3 sub-prefixes for file categories such as user profile images.
 
 ## Security And Config
 
@@ -30,7 +32,7 @@
 - [x] Configure `SQLALCHEMY_DATABASE_URI`.
 - [x] Configure `CACHE_REDIS_URL`.
 - [x] Use a stronger JWT secret for local/dev/test settings.
-- [ ] Add `.env.example` with documented development defaults.
+- [x] Add `.env.example` with documented development defaults.
 - [ ] Require real `SECRET_KEY` and `JWT_SECRET_KEY` in production.
 - [ ] Split configuration by environment: development, testing, production.
 - [ ] Move MySQL passwords in `docker-compose.yaml` behind environment variables.
@@ -86,7 +88,7 @@
 - [ ] Evaluate Schemathesis for generated API contract tests.
 - [ ] Evaluate client generation from `docs/openapi.yaml`.
 - [ ] Add curl examples for login, protected requests, and user CRUD.
-- [ ] Add environment variable documentation to the README.
+- [x] Add environment variable documentation to the README.
 - [ ] Add API error response examples to `docs/openapi.yaml`.
 
 ## Observability

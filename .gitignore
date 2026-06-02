@@ -10,5 +10,6 @@ logs/*
 .cache/
 .coverage
 htmlcov/
+uploads/
 
 .DS_Store

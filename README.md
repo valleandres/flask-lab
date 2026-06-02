@@ -102,6 +102,70 @@ docker build .
 The API is documented with OpenAPI in
 [docs/openapi.yaml](docs/openapi.yaml).
 
+### file storage
+
+Copy the example environment file before configuring storage:
+
+```bash
+cp .env.example .env
+```
+
+The `.env` file is ignored by Git. Docker Compose reads it automatically.
+
+For local file storage, keep:
+
+```dotenv
+STORAGE_BACKEND=local
+LOCAL_UPLOAD_FOLDER=uploads
+```
+
+Uploaded files are written below `uploads/`, which is also ignored by Git.
+
+For private S3 storage, configure:
+
+```dotenv
+STORAGE_BACKEND=s3
+AWS_PROFILE=flask-lab
+AWS_REGION=us-east-2
+S3_BUCKET_NAME=flask-lab-andres-dev
+S3_UPLOAD_PREFIX=files
+S3_PRESIGNED_URL_EXPIRATION=3600
+```
+
+The application uses the standard boto3 credential chain and the named local
+AWS profile. Do not add AWS credentials to `.env`. S3 uploads do not set public
+ACLs, and file access uses expiring presigned URLs.
+
+`AWS_PROFILE` is the AWS profile name, not an access key. Credentials remain in
+the local AWS configuration outside this repository. Each uploaded object gets
+a generated key such as `files/<uuid>_report.pdf`, returned by `POST /files`.
+
+Docker Compose reads `.env` automatically. To run Flask directly from the host,
+load and export the variables before starting the app:
+
+```bash
+set -a
+source .env
+set +a
+flask --app app:create_app run --port 5000
+```
+
+`set -a` makes assignments loaded from `.env` available to child processes.
+`set +a` restores the normal shell behavior afterward.
+
+Docker Compose mounts the local `~/.aws` directory read-only so the development
+container can use `AWS_PROFILE`. For other environments, provide another
+standard boto3 credential source.
+
+Upload a file, request an access URL, and delete the file:
+
+```bash
+BASE_URL=http://flask.local
+curl -F "file=@README.md" "$BASE_URL/files"
+curl "$BASE_URL/files/url?key=<key>"
+curl -X DELETE "$BASE_URL/files?key=<key>"
+```
+
 ## configuration
 
 TODO: document environment variables for Flask, JWT, database, and Redis.

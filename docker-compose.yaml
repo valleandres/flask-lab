@@ -11,9 +11,17 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-jwt-secret-key-at-least-32-bytes}
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI:-mysql+pymysql://user:password@db:3306/mydatabase}
       - CACHE_REDIS_URL=${CACHE_REDIS_URL:-redis://redis:6379/0}
+      - STORAGE_BACKEND=${STORAGE_BACKEND:-local}
+      - LOCAL_UPLOAD_FOLDER=${LOCAL_UPLOAD_FOLDER:-uploads}
+      - AWS_PROFILE=${AWS_PROFILE:-}
+      - AWS_REGION=${AWS_REGION:-us-east-2}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - S3_UPLOAD_PREFIX=${S3_UPLOAD_PREFIX:-files}
+      - S3_PRESIGNED_URL_EXPIRATION=${S3_PRESIGNED_URL_EXPIRATION:-3600}
     volumes:
       - .:/app
       - ./logs:/app/logs
+      - ${HOME}/.aws:/root/.aws:ro
     depends_on:
       db:
         condition: service_healthy
@@ -25,6 +33,8 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-jwt-secret-key-at-least-32-bytes}
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI:-mysql+pymysql://user:password@db:3306/mydatabase}
       - CACHE_REDIS_URL=${CACHE_REDIS_URL:-redis://redis:6379/0}
+      - STORAGE_BACKEND=local
+      - LOCAL_UPLOAD_FOLDER=uploads
     volumes:
       - .:/app
     command: pytest

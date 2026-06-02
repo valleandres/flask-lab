@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: flask-lab API
   version: 0.1.0
-  description: REST API for JWT authentication and user management.
+  description: REST API for JWT authentication, user management, and file storage.
 servers:
   - url: http://flask.local
     description: Local Docker Compose server
@@ -13,6 +13,8 @@ tags:
     description: JWT authentication endpoints.
   - name: Users
     description: User CRUD endpoints.
+  - name: Files
+    description: Configurable local or private S3 file storage endpoints.
 paths:
   /auth/login:
     post:
@@ -206,6 +208,106 @@ paths:
           description: User deleted.
         "404":
           description: User not found.
+  /files:
+    post:
+      tags:
+        - Files
+      summary: Upload a file.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: File uploaded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileUploadResponse"
+        "400":
+          description: Missing file or invalid filename.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - Files
+      summary: Delete a file.
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: File deleted.
+        "400":
+          description: Missing or invalid key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Local file not found.
+  /files/url:
+    get:
+      tags:
+        - Files
+      summary: Create an access URL for a file.
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Access URL created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileUrlResponse"
+        "400":
+          description: Missing or invalid key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Local file not found.
+  /files/content:
+    get:
+      tags:
+        - Files
+      summary: Download a locally stored file.
+      description: Returned local access URLs point to this endpoint. S3 uses presigned URLs.
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Local file contents.
+        "400":
+          description: Missing or invalid key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Local file not found or local storage is not active.
 components:
   securitySchemes:
     bearerAuth:
@@ -284,6 +386,24 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/User"
+    FileUploadResponse:
+      type: object
+      required:
+        - key
+      properties:
+        key:
+          type: string
+    FileUrlResponse:
+      type: object
+      required:
+        - key
+        - url
+      properties:
+        key:
+          type: string
+        url:
+          type: string
+          format: uri
     Error:
       type: object
       required:
