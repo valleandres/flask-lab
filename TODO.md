@@ -60,6 +60,9 @@
 - [ ] Review migration workflow in Docker Compose.
 - [ ] Add database indexes if user lookup grows beyond the demo dataset.
 - [ ] Decide whether `Dummy` model is still needed.
+- [ ] Create an AWS RDS MySQL instance for staging.
+- [ ] Store the RDS database URL and password outside the repository.
+- [ ] Run migrations against staging RDS during deployment.
 
 ## Integration Testing
 
@@ -118,7 +121,13 @@
 - [ ] Evaluate Railway.
 - [ ] Evaluate Fly.io.
 - [ ] Evaluate Docker-based VPS deployment.
+- [ ] Define the staging environment after production-shaped AWS integration is stable.
 - [ ] Configure managed Redis before RDS to validate the existing cache integration.
+- [ ] Create an AWS ElastiCache Redis service for staging.
+- [ ] Wire the app to the ElastiCache primary endpoint with `CACHE_REDIS_URL`.
+- [ ] Create an application EC2 security group and allow Redis 6379 from that app security group.
+- [ ] Run the ElastiCache smoke test from EC2 or SSM inside the VPC before enabling it as a required readiness check.
+- [ ] Enable `READINESS_CHECK_CACHE=true` in staging after Redis is required.
 - [ ] Choose a production database provider.
 - [ ] Choose a production Redis provider or disable Redis cache if unnecessary.
 - [ ] Document deployment environment variables.

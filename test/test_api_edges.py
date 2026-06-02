@@ -11,12 +11,13 @@ from app.models import User
 class FakeRedis:
     deleted = None
 
-    def keys(self, pattern):
-        assert pattern == "*api/users*"
-        return ["api/users"]
+    def scan_iter(self, match):
+        assert match == "*flask-lab:*api/users*"
+        yield "api/users"
 
     def delete(self, *keys):
         self.deleted = keys
+        return len(keys)
 
 
 def test_get_users_supports_filter_sort_and_pagination(client, create_users):
@@ -73,8 +74,10 @@ def test_delete_user(client, create_user):
 
 def test_invalidate_users_cache_deletes_matching_redis_keys(app, monkeypatch):
     fake_redis = FakeRedis()
-    api_module = import_module("app.api")
-    monkeypatch.setattr(api_module.redis.Redis, "from_url", lambda url: fake_redis)
+    cache_utils_module = import_module("app.cache_utils")
+    monkeypatch.setattr(
+        cache_utils_module.redis.Redis, "from_url", lambda url, **_: fake_redis
+    )
     app.config["CACHE_TYPE"] = "RedisCache"
 
     with app.app_context():

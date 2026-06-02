@@ -1,6 +1,13 @@
 import os
 
 
+def env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class Config:
     APP_ENV = "base"
     SECRET_KEY = os.getenv("SECRET_KEY")
@@ -10,8 +17,19 @@ class Config:
         "mysql+pymysql://user:password@db:3306/mydatabase",
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    CACHE_TYPE = "RedisCache"
+    CACHE_TYPE = os.getenv("CACHE_TYPE", "RedisCache")
     CACHE_REDIS_URL = os.getenv("CACHE_REDIS_URL", "redis://redis:6379/0")
+    CACHE_DEFAULT_TIMEOUT = int(os.getenv("CACHE_DEFAULT_TIMEOUT", "60"))
+    CACHE_KEY_PREFIX = os.getenv("CACHE_KEY_PREFIX", "flask-lab:")
+    CACHE_REDIS_SOCKET_CONNECT_TIMEOUT = float(
+        os.getenv("CACHE_REDIS_SOCKET_CONNECT_TIMEOUT", "1")
+    )
+    CACHE_REDIS_SOCKET_TIMEOUT = float(os.getenv("CACHE_REDIS_SOCKET_TIMEOUT", "1"))
+    CACHE_OPTIONS = {
+        "socket_connect_timeout": CACHE_REDIS_SOCKET_CONNECT_TIMEOUT,
+        "socket_timeout": CACHE_REDIS_SOCKET_TIMEOUT,
+    }
+    READINESS_CHECK_CACHE = env_bool("READINESS_CHECK_CACHE", False)
     JWT_EXPIRATION_SECONDS = 3600  # 1 hour
     STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "local")
     LOCAL_UPLOAD_FOLDER = os.getenv("LOCAL_UPLOAD_FOLDER", "uploads")
@@ -27,6 +45,10 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-at-least-32-bytes-long")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", SECRET_KEY)
+    STORAGE_BACKEND = "local"
+    AWS_PROFILE = None
+    S3_BUCKET_NAME = None
+    READINESS_CHECK_CACHE = env_bool("READINESS_CHECK_CACHE", False)
 
 
 class TestingConfig(Config):
@@ -37,12 +59,17 @@ class TestingConfig(Config):
     JWT_SECRET_KEY = DevelopmentConfig.JWT_SECRET_KEY
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     CACHE_TYPE = "SimpleCache"
+    READINESS_CHECK_CACHE = False
     STORAGE_BACKEND = "local"
 
 
 class ProductionConfig(Config):
     APP_ENV = "production"
     SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
+    CACHE_TYPE = os.getenv("CACHE_TYPE", "RedisCache")
+    CACHE_REDIS_URL = os.getenv("CACHE_REDIS_URL")
+    READINESS_CHECK_CACHE = env_bool("READINESS_CHECK_CACHE", True)
+    STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "s3")
 
 
 CONFIG_BY_ENV = {
@@ -67,6 +94,14 @@ def validate_config(config):
         return
 
     required_settings = ("SECRET_KEY", "JWT_SECRET_KEY", "SQLALCHEMY_DATABASE_URI")
+    cache_type = str(config.get("CACHE_TYPE", "")).strip().lower()
+    storage_backend = str(config.get("STORAGE_BACKEND", "")).strip().lower()
+
+    if cache_type == "rediscache":
+        required_settings += ("CACHE_REDIS_URL",)
+    if storage_backend == "s3":
+        required_settings += ("AWS_REGION", "S3_BUCKET_NAME")
+
     missing_settings = [name for name in required_settings if not config.get(name)]
     if missing_settings:
         missing_names = ", ".join(missing_settings)

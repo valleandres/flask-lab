@@ -1,6 +1,6 @@
-import redis
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, jsonify, request
 
+from app.cache_utils import delete_cached_route
 from app.extensions import cache
 
 from . import csrf
@@ -13,13 +13,7 @@ USER_SORT_COLUMNS = {
 
 
 def invalidate_users_cache():
-    if current_app.config.get("CACHE_TYPE") != "RedisCache":
-        return
-
-    redis_client = redis.Redis.from_url(current_app.config["CACHE_REDIS_URL"])
-    keys = redis_client.keys("*api/users*")
-    if keys:
-        redis_client.delete(*keys)
+    delete_cached_route("/api/users")
 
 
 api = Blueprint("api", __name__, url_prefix="/api/users")
@@ -40,7 +34,7 @@ def sort_users(query, sort_field, sort_order):
 
 
 @api.route("", methods=["GET"])
-@cache.cached(timeout=60)
+@cache.cached()
 def get_users():
     page = request.args.get("page", default=1, type=int)
     limit = request.args.get("limit", default=2, type=int)
@@ -68,7 +62,7 @@ def get_users():
 
 
 @api.route("/<int:user_id>", methods=["GET"])
-@cache.cached(timeout=60)
+@cache.cached()
 def get_user(user_id):
     user = db.get_or_404(User, user_id)
     return jsonify({"id": user.id, "name": user.name})

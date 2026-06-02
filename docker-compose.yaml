@@ -10,7 +10,13 @@ services:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-at-least-32-bytes-long}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-jwt-secret-key-at-least-32-bytes}
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI:-mysql+pymysql://user:password@db:3306/mydatabase}
+      - CACHE_TYPE=${CACHE_TYPE:-RedisCache}
       - CACHE_REDIS_URL=${CACHE_REDIS_URL:-redis://redis:6379/0}
+      - CACHE_DEFAULT_TIMEOUT=${CACHE_DEFAULT_TIMEOUT:-60}
+      - CACHE_KEY_PREFIX=${CACHE_KEY_PREFIX:-flask-lab:}
+      - CACHE_REDIS_SOCKET_CONNECT_TIMEOUT=${CACHE_REDIS_SOCKET_CONNECT_TIMEOUT:-1}
+      - CACHE_REDIS_SOCKET_TIMEOUT=${CACHE_REDIS_SOCKET_TIMEOUT:-1}
+      - READINESS_CHECK_CACHE=${READINESS_CHECK_CACHE:-false}
       - STORAGE_BACKEND=${STORAGE_BACKEND:-local}
       - LOCAL_UPLOAD_FOLDER=${LOCAL_UPLOAD_FOLDER:-uploads}
       - AWS_PROFILE=${AWS_PROFILE:-}
@@ -24,6 +30,8 @@ services:
       - ${HOME}/.aws:/root/.aws:ro
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test:
@@ -41,6 +49,7 @@ services:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-at-least-32-bytes-long}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-jwt-secret-key-at-least-32-bytes}
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI:-mysql+pymysql://user:password@db:3306/mydatabase}
+      - CACHE_TYPE=SimpleCache
       - CACHE_REDIS_URL=${CACHE_REDIS_URL:-redis://redis:6379/0}
       - STORAGE_BACKEND=local
       - LOCAL_UPLOAD_FOLDER=uploads
@@ -68,6 +77,11 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
+    healthcheck:
+      test: redis-cli ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db_data:

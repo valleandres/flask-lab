@@ -32,6 +32,9 @@ def create_app(config_name=None, test_config=None):
 
     validate_config(app.config)
 
+    if app.config.get("CACHE_TYPE") != "RedisCache":
+        app.config["CACHE_OPTIONS"] = {}
+
     # Logging setup
     if not os.path.exists("logs"):
         os.mkdir("logs")

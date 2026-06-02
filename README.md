@@ -120,8 +120,59 @@ APP_ENV=development
 
 - `development` enables debug mode and local development defaults.
 - `testing` uses SQLite, simple in-process cache, and local file storage.
-- `production` requires `SECRET_KEY`, `JWT_SECRET_KEY`, and
-  `SQLALCHEMY_DATABASE_URI` to be set explicitly.
+- `staging` is intentionally pending until the intermediate AWS environment is
+  created.
+- `production` uses AWS S3 for private file storage and AWS ElastiCache Redis
+  for cache. It requires `SECRET_KEY`, `JWT_SECRET_KEY`,
+  `SQLALCHEMY_DATABASE_URI`, `CACHE_REDIS_URL`, and `S3_BUCKET_NAME` to be set
+  explicitly.
+
+The intended environment split is:
+
+- Development: local Docker Compose services only, no AWS dependency.
+- Staging: pending future intermediate AWS environment.
+- Production: AWS S3 and AWS ElastiCache, with database configuration supplied
+  by the deployment environment.
+
+### database and cache
+
+Docker Compose provides local MySQL and Redis services for development. This is
+the default local setup and does not require AWS:
+
+```dotenv
+SQLALCHEMY_DATABASE_URI=mysql+pymysql://user:password@db:3306/mydatabase
+CACHE_TYPE=RedisCache
+CACHE_REDIS_URL=redis://redis:6379/0
+CACHE_DEFAULT_TIMEOUT=60
+CACHE_KEY_PREFIX=flask-lab:
+READINESS_CHECK_CACHE=false
+```
+
+RDS is the managed MySQL database, not the cache. When using AWS RDS, point the
+database URL at the RDS endpoint:
+
+```dotenv
+SQLALCHEMY_DATABASE_URI=mysql+pymysql://<user>:<password>@<rds-endpoint>:3306/<database>
+```
+
+For AWS-managed cache, use ElastiCache for Redis and point the cache URL at the
+Redis primary endpoint:
+
+```dotenv
+CACHE_TYPE=RedisCache
+CACHE_REDIS_URL=rediss://:<auth-token>@<elasticache-primary-endpoint>:6379/0
+READINESS_CHECK_CACHE=true
+```
+
+The `:` before `<auth-token>` is required when Redis uses a password without a
+username. Use `redis://...` only when the Redis service does not use in-transit
+encryption. Keep database passwords and cache credentials in the deployment
+secret manager, not in this repository. If Redis is not available for a local
+run outside Docker Compose, set `CACHE_TYPE=SimpleCache`.
+
+Use [.env.production.example](.env.production.example) as the production-shaped
+template. Keep the real values in a deployment secret store or in the ignored
+local `.env` file when testing manually.
 
 For local file storage, keep:
 
@@ -136,20 +187,21 @@ For private S3 storage, configure:
 
 ```dotenv
 STORAGE_BACKEND=s3
-AWS_PROFILE=flask-lab
 AWS_REGION=us-east-2
 S3_BUCKET_NAME=flask-lab-andres-dev
 S3_UPLOAD_PREFIX=files
 S3_PRESIGNED_URL_EXPIRATION=3600
 ```
 
-The application uses the standard boto3 credential chain and the named local
-AWS profile. Do not add AWS credentials to `.env`. S3 uploads do not set public
-ACLs, and file access uses expiring presigned URLs.
+The application uses the standard boto3 credential chain. In production on EC2,
+prefer an instance profile/IAM role instead of `AWS_PROFILE`. Do not add AWS
+credentials to `.env`. S3 uploads do not set public ACLs, and file access uses
+expiring presigned URLs.
 
-`AWS_PROFILE` is the AWS profile name, not an access key. Credentials remain in
-the local AWS configuration outside this repository. Each uploaded object gets
-a generated key such as `files/<uuid>_report.pdf`, returned by `POST /files`.
+If you set `AWS_PROFILE` for manual local AWS testing, it is the AWS profile
+name, not an access key. Credentials remain in the local AWS configuration
+outside this repository. Each uploaded object gets a generated key such as
+`files/<uuid>_report.pdf`, returned by `POST /files`.
 
 Docker Compose reads `.env` automatically. To run Flask directly from the host,
 load and export the variables before starting the app:

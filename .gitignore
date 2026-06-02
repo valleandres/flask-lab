@@ -4,7 +4,9 @@ __pycache__/
 
 # Flask + Python extras
 instance/
-.env
+.env*
+!.env.example
+!.env.production.example
 *.log
 logs/*
 .cache/
