@@ -3,7 +3,7 @@ boto3
 flask-wtf
 flask-sqlalchemy
 pymysql
-cryptography>=48.0.1
+cryptography>=49.0.0
 pytest>=9.0.3
 pytest-flask
 flask-login
