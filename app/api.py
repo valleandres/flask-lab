@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from opentelemetry import trace
 
 from app.cache_utils import delete_cached_route
 from app.extensions import cache
@@ -10,6 +11,8 @@ USER_SORT_COLUMNS = {
     "id": User.id,
     "name": User.name,
 }
+
+tracer = trace.get_tracer(__name__)
 
 
 def invalidate_users_cache():
@@ -42,11 +45,18 @@ def get_users():
     sort_field = request.args.get("sort", default="id")
     sort_order = request.args.get("order", default="asc")
 
-    query = User.query
-    query = filter_users_by_name(query, name_filter)
-    query = sort_users(query, sort_field, sort_order)
+    with tracer.start_as_current_span("api.get_users.query_pipeline") as span:
+        span.set_attribute("name_filter", name_filter or "")
+        span.set_attribute("sort_field", sort_field)
+        span.set_attribute("sort_order", sort_order)
+        span.set_attribute("page", page)
+        span.set_attribute("limit", limit)
 
-    users_query = query.paginate(page=page, per_page=limit, error_out=False)
+        query = User.query
+        query = filter_users_by_name(query, name_filter)
+        query = sort_users(query, sort_field, sort_order)
+
+        users_query = query.paginate(page=page, per_page=limit, error_out=False)
 
     users = users_query.items
 

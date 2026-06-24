@@ -13,3 +13,14 @@ Flask-Caching
 redis
 Mako>=1.3.12
 Werkzeug>=3.1.8
+
+opentelemetry-api>=1.27,<1.28
+opentelemetry-sdk>=1.27,<1.28
+opentelemetry-exporter-otlp-proto-grpc>=1.27,<1.28
+opentelemetry-instrumentation-flask>=0.48b0,<0.49
+opentelemetry-instrumentation-sqlalchemy>=0.48b0,<0.49
+# requests instrumentation included for future-proofing; app has no requests usage yet
+requests
+opentelemetry-instrumentation-requests>=0.48b0,<0.49
+# opentelemetry-instrumentation 0.48b0 still imports pkg_resources, removed in setuptools>=81
+setuptools<81
