@@ -140,3 +140,34 @@ def test_validate_config_allows_production_without_redis_cache():
             "CACHE_TYPE": "SimpleCache",
         }
     )
+
+
+def test_validate_config_rejects_otel_enabled_without_endpoint(monkeypatch):
+    monkeypatch.delenv("OTEL_EXPORTER_OTLP_ENDPOINT", raising=False)
+
+    with pytest.raises(ValueError, match="OTEL_EXPORTER_OTLP_ENDPOINT"):
+        validate_config(
+            {
+                "APP_ENV": "production",
+                "SECRET_KEY": "secret",
+                "JWT_SECRET_KEY": "jwt-secret",
+                "SQLALCHEMY_DATABASE_URI": "mysql://database",
+                "CACHE_TYPE": "SimpleCache",
+                "OTEL_ENABLED": True,
+            }
+        )
+
+
+def test_validate_config_accepts_otel_enabled_with_endpoint(monkeypatch):
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317")
+
+    validate_config(
+        {
+            "APP_ENV": "production",
+            "SECRET_KEY": "secret",
+            "JWT_SECRET_KEY": "jwt-secret",
+            "SQLALCHEMY_DATABASE_URI": "mysql://database",
+            "CACHE_TYPE": "SimpleCache",
+            "OTEL_ENABLED": True,
+        }
+    )

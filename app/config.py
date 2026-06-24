@@ -137,3 +137,9 @@ def validate_config(config):
     if missing_settings:
         missing_names = ", ".join(missing_settings)
         raise ValueError(f"Missing production configuration: {missing_names}")
+
+    if config.get("OTEL_ENABLED") and not os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT"):
+        raise ValueError(
+            "OTEL_EXPORTER_OTLP_ENDPOINT must be set in production when "
+            "OTEL_ENABLED is true"
+        )
