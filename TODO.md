@@ -88,6 +88,9 @@
 - [ ] Consider enabling signed commits later if commit provenance becomes important.
 - [ ] Add scheduled dependency audit runs in addition to push-based runs.
 - [ ] Add automatic EC2 deployment with GitHub Actions OIDC, ECR images, and Systems Manager Run Command.
+- [ ] Add deploy workflow rollback to the previous ECR image when `/ready` fails.
+- [ ] Split deploy workflow into staging and production GitHub environments.
+- [ ] Protect deploy workflows with manual approvals for production.
 
 ## API Documentation
 
@@ -132,6 +135,12 @@
 - [ ] Choose a production Redis provider or disable Redis cache if unnecessary.
 - [ ] Document deployment environment variables.
 - [ ] Add deployment smoke-test steps.
+- [ ] Bootstrap EC2 with Docker installation through cloud-init, Terraform, or a reusable SSM document.
+- [ ] Move `/flask-lab/dev/env-production` Parameter Store creation into infrastructure automation.
+- [ ] Replace the MVP single-EC2 deploy with an immutable image deployment strategy.
+- [ ] Add ECR lifecycle policies for old image cleanup.
+- [ ] Add CloudWatch log shipping for the Flask container.
+- [ ] Add HTTPS and a load balancer before exposing production publicly.
 - [ ] Define an ephemeral AWS staging environment with Terraform.
 - [ ] Add a manual GitHub Actions workflow to provision the ephemeral Terraform stack on demand.
 - [ ] Deploy the application, run migrations, verify `/ready`, and run integration smoke tests against ephemeral staging.
