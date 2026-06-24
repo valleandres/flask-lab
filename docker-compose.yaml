@@ -7,6 +7,7 @@ services:
       - ${ENV_FILE:-.env.development}
     environment:
       - ENV_FILE=${ENV_FILE:-.env.development}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     volumes:
       - .:/app
       - ./logs:/app/logs
@@ -16,6 +17,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     healthcheck:
       test:
         - CMD
@@ -68,6 +71,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
 
 volumes:
   db_data:

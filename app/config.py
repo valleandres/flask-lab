@@ -66,6 +66,8 @@ class Config:
     S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
     S3_UPLOAD_PREFIX = os.getenv("S3_UPLOAD_PREFIX", "files")
     S3_PRESIGNED_URL_EXPIRATION = int(os.getenv("S3_PRESIGNED_URL_EXPIRATION", "3600"))
+    OTEL_ENABLED = env_bool("OTEL_ENABLED", True)
+    OTEL_EXCLUDED_URLS = os.getenv("OTEL_EXCLUDED_URLS", "health,ready")
 
 
 class DevelopmentConfig(Config):
@@ -89,6 +91,7 @@ class TestingConfig(Config):
     CACHE_TYPE = "SimpleCache"
     READINESS_CHECK_CACHE = False
     STORAGE_BACKEND = "local"
+    OTEL_ENABLED = False
 
 
 class ProductionConfig(Config):

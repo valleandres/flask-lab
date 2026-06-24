@@ -9,6 +9,7 @@ from app.auth.routes import auth_bp
 from app.config import get_config, validate_config
 from app.extensions import cache, csrf, db, login_manager
 from app.models import Admin
+from app.telemetry import init_telemetry
 
 from .api import api
 from .files import files
@@ -68,6 +69,8 @@ def create_app(config_name=None, test_config=None):
     app.register_blueprint(files)
 
     app.register_blueprint(health)
+
+    init_telemetry(app)
 
     @login_manager.user_loader
     def load_user(user_id):
