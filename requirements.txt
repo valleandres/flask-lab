@@ -22,5 +22,4 @@ opentelemetry-instrumentation-sqlalchemy>=0.64b0,<0.65
 # requests instrumentation included for future-proofing; app has no requests usage yet
 requests
 opentelemetry-instrumentation-requests>=0.64b0,<0.65
-# opentelemetry-instrumentation 0.48b0 still imports pkg_resources, removed in setuptools>=81
-setuptools<81
+setuptools>=83.0.0
