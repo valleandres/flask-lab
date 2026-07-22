@@ -14,12 +14,12 @@ redis
 Mako
 Werkzeug
 
-opentelemetry-api>=1.43.0,<1.44
-opentelemetry-sdk>=1.43.0,<1.44
-opentelemetry-exporter-otlp-proto-grpc>=1.43.0,<1.44
-opentelemetry-instrumentation-flask>=0.64b0,<0.65
-opentelemetry-instrumentation-sqlalchemy>=0.64b0,<0.65
+opentelemetry-api>=1.44.0,<1.45
+opentelemetry-sdk>=1.44.0,<1.45
+opentelemetry-exporter-otlp-proto-grpc>=1.44.0,<1.45
+opentelemetry-instrumentation-flask>=0.65b0,<0.65
+opentelemetry-instrumentation-sqlalchemy>=0.65b0,<0.65
 # requests instrumentation included for future-proofing; app has no requests usage yet
 requests
-opentelemetry-instrumentation-requests>=0.64b0,<0.65
+opentelemetry-instrumentation-requests>=0.65b0,<0.65
 setuptools>=83.0.0
