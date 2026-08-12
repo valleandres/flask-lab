@@ -22,4 +22,4 @@ opentelemetry-instrumentation-sqlalchemy>=0.65b0,<0.66
 # requests instrumentation included for future-proofing; app has no requests usage yet
 requests
 opentelemetry-instrumentation-requests>=0.65b0,<0.66
-setuptools>=83.0.0
+setuptools>=84.0.0
