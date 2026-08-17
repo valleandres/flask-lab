@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import ClassVar
 
 
 def load_env_file(env_file=None):
@@ -53,7 +54,7 @@ class Config:
         os.getenv("CACHE_REDIS_SOCKET_CONNECT_TIMEOUT", "1")
     )
     CACHE_REDIS_SOCKET_TIMEOUT = float(os.getenv("CACHE_REDIS_SOCKET_TIMEOUT", "1"))
-    CACHE_OPTIONS = {
+    CACHE_OPTIONS: ClassVar[dict[str, float]] = {
         "socket_connect_timeout": CACHE_REDIS_SOCKET_CONNECT_TIMEOUT,
         "socket_timeout": CACHE_REDIS_SOCKET_TIMEOUT,
     }
