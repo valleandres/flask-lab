@@ -28,14 +28,10 @@ def test_env_bool_reads_truthy_values(monkeypatch):
 def test_load_env_file_reads_values(tmp_path, monkeypatch):
     env_file = tmp_path / ".env.custom"
     env_file.write_text(
-        "\n".join(
-            [
-                "# ignored",
-                "CUSTOM_VALUE=from-file",
-                "QUOTED_VALUE='quoted from file'",
-                "MALFORMED_LINE",
-            ]
-        )
+        "# ignored\n"
+        "CUSTOM_VALUE=from-file\n"
+        "QUOTED_VALUE='quoted from file'\n"
+        "MALFORMED_LINE"
     )
     monkeypatch.delenv("CUSTOM_VALUE", raising=False)
     monkeypatch.delenv("QUOTED_VALUE", raising=False)
