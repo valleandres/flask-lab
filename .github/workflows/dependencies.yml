@@ -1,9 +1,11 @@
 name: Dependencies
 
-# Audits Python dependencies on every push to main.
+# Audits Python dependencies on every push to main and on pull requests.
 # Keep ignored vulnerabilities explicit so they can be reviewed later.
 on:
   push:
+    branches: ["main"]
+  pull_request:
     branches: ["main"]
 
 jobs:

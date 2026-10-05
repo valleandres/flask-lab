@@ -14,12 +14,15 @@ redis
 Mako
 Werkzeug
 
-opentelemetry-api>=1.45.0,<1.46
-opentelemetry-sdk>=1.45.0,<1.46
-opentelemetry-exporter-otlp-proto-grpc>=1.45.0,<1.46
-opentelemetry-instrumentation-flask>=0.66b0,<0.66
-opentelemetry-instrumentation-sqlalchemy>=0.66b0,<0.66
+# OTel core (1.x) and contrib (0.xbN) are released in lockstep and contrib pins
+# core exactly, so pin all of them with == and let dependabot bump them as a group.
+# Ranges like >=0.66b0,<0.66 are unsatisfiable: <0.66 excludes 0.66 pre-releases.
+opentelemetry-api==1.45.0
+opentelemetry-sdk==1.45.0
+opentelemetry-exporter-otlp-proto-grpc==1.45.0
+opentelemetry-instrumentation-flask==0.66b0
+opentelemetry-instrumentation-sqlalchemy==0.66b0
 # requests instrumentation included for future-proofing; app has no requests usage yet
 requests
-opentelemetry-instrumentation-requests>=0.66b0,<0.66
+opentelemetry-instrumentation-requests==0.66b0
 setuptools>=84.0.0
